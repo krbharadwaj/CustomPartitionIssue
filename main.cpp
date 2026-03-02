@@ -135,19 +135,20 @@ static std::wstring EscJS(const std::wstring& s) {
 // ==========================================================================
 static std::wstring BuildResultScript(int n, const wchar_t* title,
                                        const std::wstring& desc,
-                                       const std::wstring& /*parentApiPart*/,
-                                       const std::wstring& popupPart) {
-  // Parent effective partition is always (default) — partition set after
-  // about:blank does not change the parent's own storage.
-  // Popup effective: if API reports "" or "(default)", effective is (default);
-  // otherwise it's whatever the API reports (set before any navigation on child).
-  std::wstring parentEff = L"(default)";
+                                       const std::wstring& parentApiPart,
+                                       const std::wstring& popupPart,
+                                       const std::wstring& parentEffOverride = L"") {
+  // parentEffOverride: if non-empty, use it as parent effective partition
+  // (e.g. for "partition before nav" scenarios where partition IS applied).
+  // Otherwise default to (default).
+  std::wstring parentEff = parentEffOverride.empty() ? L"(default)" : parentEffOverride;
   std::wstring popupEff = (popupPart.empty() || popupPart == L"(default)")
       ? L"(default)" : popupPart;
   bool match = (popupEff == parentEff);
   std::wstring safeTitle = EscJS(title);
   std::wstring safeDesc = EscJS(desc);
   std::wstring safePopupEff = EscJS(popupEff);
+  std::wstring safeParentEff = EscJS(parentEff);
   std::wstring js;
   js += L"(function(){\n";
   js += L"document.documentElement.style.cssText='margin:0;padding:0;width:100%;height:100%';\n";
@@ -157,7 +158,7 @@ static std::wstring BuildResultScript(int n, const wchar_t* title,
   js += L"var h='<h1>Scenario " + std::to_wstring(n) + L": " + safeTitle + L"</h1>';\n";
   js += L"h+='<div class=\"desc\">" + safeDesc + L"</div>';\n";
   js += L"h+='<div class=\"pbox\">';\n";
-  js += L"h+='<div class=\"row\"><span class=\"lbl\">Parent effective partition:</span><span class=\"val\" style=\"color:#89b4fa\">(default)</span></div>';\n";
+  js += L"h+='<div class=\"row\"><span class=\"lbl\">Parent effective partition:</span><span class=\"val\" style=\"color:#89b4fa\">" + safeParentEff + L"</span></div>';\n";
   js += L"h+='<div class=\"row\"><span class=\"lbl\">Popup effective partition:</span><span class=\"val\" style=\"color:" + std::wstring(match?L"#a6e3a1":L"#f38ba8") +L"\">" + safePopupEff + L"</span></div>';\n";
   js += L"h+='<div class=\"row\"><span class=\"lbl\">Match:</span><span class=\"val\" style=\"color:" + std::wstring(match?L"#a6e3a1":L"#f38ba8") +L"\">" + std::wstring(match?L"\\u2705 YES":L"\\u274C NO") + L"</span></div>';\n";
   js += L"h+='</div>';\n";
@@ -950,7 +951,7 @@ static void RunScenario15() {
                                           ctx->pendingScript = BuildResultScript(15,
                                               L"Before Nav | New WV | No Partition",
                                               L"Parent sets <b>partition BEFORE Navigate(about:blank)</b>. New child WebView, no partition set.",
-                                              parentPart, childPart);
+                                              parentPart, childPart, L"demoPartition");
 
                                           args->put_NewWindow(ctx->childWv.Get());
                                           args->put_Handled(TRUE);
@@ -1049,7 +1050,7 @@ static void RunScenario16() {
                                           ctx->pendingScript = BuildResultScript(16,
                                               L"Before Nav | New WV | Same Partition",
                                               L"Parent sets <b>partition BEFORE Navigate(about:blank)</b>. New child with same partition.",
-                                              parentPart, childPart);
+                                              parentPart, childPart, L"demoPartition");
 
                                           args->put_NewWindow(ctx->childWv.Get());
                                           args->put_Handled(TRUE);
@@ -1148,7 +1149,7 @@ static void RunScenario17() {
                                           ctx->pendingScript = BuildResultScript(17,
                                               L"Before Nav | New WV | Different Partition",
                                               L"Parent sets <b>partition BEFORE Navigate(about:blank)</b>. New child with different partition.",
-                                              parentPart, childPart);
+                                              parentPart, childPart, L"demoPartition");
 
                                           args->put_NewWindow(ctx->childWv.Get());
                                           args->put_Handled(TRUE);
@@ -1247,7 +1248,7 @@ static void RunScenario18() {
                                           ctx->pendingScript = BuildResultScript(18,
                                               L"Before Nav | New WV | Default Partition",
                                               L"Parent sets <b>partition BEFORE Navigate(about:blank)</b>. New child with default partition.",
-                                              parentPart, childPart);
+                                              parentPart, childPart, L"demoPartition");
 
                                           args->put_NewWindow(ctx->childWv.Get());
                                           args->put_Handled(TRUE);
@@ -1322,7 +1323,7 @@ static void RunScenario19() {
                                 ctx->pendingScript = BuildResultScript(19,
                                     L"Before Nav | Reused | Inherits",
                                     L"Parent sets <b>partition BEFORE Navigate(about:blank)</b>. Parent reused, inherits partition.",
-                                    parentPart, parentPart);
+                                    parentPart, parentPart, L"demoPartition");
 
                                 args->put_NewWindow(ctx->parentWv.Get());
                                 args->put_Handled(TRUE);
@@ -1393,7 +1394,7 @@ static void RunScenario20() {
                                 ctx->pendingScript = BuildResultScript(20,
                                     L"Before Nav | Reused | Default",
                                     L"Parent sets <b>partition BEFORE Navigate(about:blank)</b>. Parent reused, reset to default before put_NewWindow.",
-                                    originalParentPart, popupPart);
+                                    originalParentPart, popupPart, L"demoPartition");
 
                                 args->put_NewWindow(ctx->parentWv.Get());
                                 args->put_Handled(TRUE);
@@ -1464,7 +1465,7 @@ static void RunScenario21() {
                                 ctx->pendingScript = BuildResultScript(21,
                                     L"Before Nav | Reused | Own Partition",
                                     L"Parent sets <b>partition BEFORE Navigate(about:blank)</b>. Parent reused, changed to otherPartition before put_NewWindow.",
-                                    originalParentPart, popupPart);
+                                    originalParentPart, popupPart, L"demoPartition");
 
                                 args->put_NewWindow(ctx->parentWv.Get());
                                 args->put_Handled(TRUE);
