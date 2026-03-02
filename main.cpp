@@ -2079,7 +2079,6 @@ static void InitLauncher() {
             js += L"h+='<div class=\"desc\">New child WebView, DEFAULT/empty partition set.</div>';\n";
             js += L"h+='</div>';\n";
 
-            js += L"h+='<h2 style=\"margin-top:4px\">Parent Reuse (partition after nav)</h2>';\n";
             js += L"h+='<div class=\"sc\" onclick=\"window.chrome.webview.postMessage(\\x275\\x27)\">';\n";
             js += L"h+='<span class=\"num\">5</span>';\n";
             js += L"h+='<span class=\"lbl\">Parent Reused | Inherits Partition</span>';\n";
@@ -2118,7 +2117,6 @@ static void InitLauncher() {
             js += L"h+='<span class=\"lbl\">Before Nav | New WV | Default Partition</span>';\n";
             js += L"h+='<div class=\"desc\">Like S4: new child, default partition.</div>';\n";
             js += L"h+='</div>';\n";
-            js += L"h+='<h2 style=\"margin-top:4px\">Parent Reuse (partition before nav)</h2>';\n";
             js += L"h+='<div class=\"sc\" onclick=\"window.chrome.webview.postMessage(\\x2719\\x27)\">';\n";
             js += L"h+='<span class=\"num\">19</span>';\n";
             js += L"h+='<span class=\"lbl\">Before Nav | Reused | Inherits</span>';\n";
