@@ -51,37 +51,46 @@ directly in the creation callback, then `window.open()` is called immediately.
 
 Tests whether the auto-navigation timing affects partition behavior.
 
-### Full Scenario Matrix
+### Full Scenario Summary
 
-| Scenario | Timing          | WebView     | Child Partition    |
-|----------|-----------------|-------------|--------------------|
-| S1       | After Nav       | New         | (none)             |
-| S2       | After Nav       | New         | demoPartition      |
-| S3       | After Nav       | New         | otherPartition     |
-| S4       | After Nav       | New         | (default)          |
-| S5       | After Nav       | Reused      | (unchanged)        |
-| S6       | After Nav       | Reused      | (default)          |
-| S7       | After Nav       | Reused      | otherPartition     |
-| S8       | Implicit        | New         | (none)             |
-| S9       | Implicit        | New         | demoPartition      |
-| S10      | Implicit        | New         | otherPartition     |
-| S11      | Implicit        | New         | (default)          |
-| S12      | Implicit        | Reused      | (unchanged)        |
-| S13      | Implicit        | Reused      | (default)          |
-| S14      | Implicit        | Reused      | otherPartition     |
-| S15      | Before Nav      | New         | (none)             |
-| S16      | Before Nav      | New         | demoPartition      |
-| S17      | Before Nav      | New         | otherPartition     |
-| S18      | Before Nav      | New         | (default)          |
-| S19      | Before Nav      | Reused      | (unchanged)        |
-| S20      | Before Nav      | Reused      | (default)          |
-| S21      | Before Nav      | Reused      | otherPartition     |
+| # | Timing | Child WebView | Child Partition Set | Parent Effective | Popup Effective | Match? | Blob URLs |
+|---|--------|--------------|--------------------|-----------------:|----------------:|:------:|:---------:|
+| **① Partition AFTER Navigate** | | | | | | | |
+| S1 | After Nav | New | (none) | (default) | (none) | ✅ | Work |
+| S2 | After Nav | New | demoPartition | (default) | demoPartition | ❌ | Fail |
+| S3 | After Nav | New | otherPartition | (default) | otherPartition | ❌ | Fail |
+| S4 | After Nav | New | "" (default) | (default) | (default) | ✅ | Work |
+| S5 | After Nav | Reused | (unchanged) | (default) | demoPartition | ❌ | Fail |
+| S6 | After Nav | Reused | "" (default) | (default) | (default) | ✅ | Work |
+| S7 | After Nav | Reused | otherPartition | (default) | otherPartition | ❌ | Fail |
+| **② Partition BEFORE Navigate** | | | | | | | |
+| S15 | Before Nav | New | (none) | demoPartition | (none) | ❌ | Fail |
+| S16 | Before Nav | New | demoPartition | demoPartition | demoPartition | ✅ | Work |
+| S17 | Before Nav | New | otherPartition | demoPartition | otherPartition | ❌ | Fail |
+| S18 | Before Nav | New | "" (default) | demoPartition | (default) | ❌ | Fail |
+| S19 | Before Nav | Reused | (unchanged) | demoPartition | demoPartition | ✅ | Work |
+| S20 | Before Nav | Reused | "" (default) | demoPartition | (default) | ❌ | Fail |
+| S21 | Before Nav | Reused | otherPartition | demoPartition | otherPartition | ❌ | Fail |
+| **③ Implicit Navigation** | | | | | | | |
+| S8 | Implicit | New | (none) | (default) | (none) | ✅ | Work |
+| S9 | Implicit | New | demoPartition | (default) | demoPartition | ❌ | Fail |
+| S10 | Implicit | New | otherPartition | (default) | otherPartition | ❌ | Fail |
+| S11 | Implicit | New | "" (default) | (default) | (default) | ✅ | Work |
+| S12 | Implicit | Reused | (unchanged) | (default) | demoPartition | ❌ | Fail |
+| S13 | Implicit | Reused | "" (default) | (default) | (default) | ✅ | Work |
+| S14 | Implicit | Reused | otherPartition | (default) | otherPartition | ❌ | Fail |
+
+> **Why parent effective differs across sections:**
+> - **After Nav / Implicit**: Partition is set *after* about:blank loads → page stays in `(default)` partition
+> - **Before Nav**: Partition is set *before* `Navigate(about:blank)` → navigation uses `demoPartition`
+>
+> **Blob URLs fail** when parent and popup have different effective partitions — a blob created
+> in one partition's storage is invisible to the other.
 
 ## What Each Scenario Shows
 
 Each scenario result displays:
-- **Parent effective partition** — always `(default)` since partition is set
-  after/around `about:blank` navigation
+- **Parent effective partition** — `(default)` for sections ① and ③; `demoPartition` for section ②
 - **Popup effective partition** — queried via `get_CustomDataPartitionId`
 - **Match** — whether popup and parent share the same effective partition
 - Color-coded verdict: ✅ same partition (blob URLs work) or ❌ different (blob URLs fail)
