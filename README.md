@@ -29,7 +29,7 @@ The app tests 7 partition configurations across 3 different timing patterns:
 
 ### Three Timing Sections
 
-#### ① Partition AFTER Navigate (S1–S7)
+#### ① Partition set AFTER WebView2 Navigate API call on top level frame which spawns new window (S1–S7)
 Parent calls `Navigate(about:blank)` → waits for `NavigationCompleted` → **then**
 calls `put_CustomDataPartitionId("demoPartition")`.
 
@@ -37,14 +37,14 @@ This is the most common pattern. The partition is set after the initial navigati
 completes. The parent's effective storage remains `(default)` because the partition
 was set after the page loaded.
 
-#### ② Partition BEFORE Navigate (S15–S21)
+#### ② Partition set BEFORE WebView2 Navigate API call on top level frame which spawns new window (S15–S21)
 Parent calls `put_CustomDataPartitionId("demoPartition")` **first** → **then**
 calls `Navigate(about:blank)` → waits for `NavigationCompleted`.
 
 Tests whether setting the partition before navigation causes the subsequent
 `about:blank` navigation to use the custom partition.
 
-#### ③ Implicit Navigation (S8–S14)
+#### ③ Partition set AFTER WebView2 implicit navigation during init on top level frame which spawns new window (S8–S14)
 Parent does **NOT** call `Navigate(about:blank)`. Relies on WebView2's automatic
 `about:blank` navigation that occurs during controller creation. Partition is set
 directly in the creation callback, then `window.open()` is called immediately.
@@ -55,7 +55,7 @@ Tests whether the auto-navigation timing affects partition behavior.
 
 | # | Timing | Child WebView | Child Partition Set | Parent Effective | Popup Effective | Match? | Blob URLs |
 |---|--------|--------------|--------------------|-----------------:|----------------:|:------:|:---------:|
-| **① Partition AFTER Navigate** | | | | | | | |
+| **① Partition set AFTER WebView2 Navigate API call** | | | | | | | |
 | S1 | After Nav | New | (none) | (default) | (none) | ✅ | Work |
 | S2 | After Nav | New | demoPartition | (default) | demoPartition | ❌ | Fail |
 | S3 | After Nav | New | otherPartition | (default) | otherPartition | ❌ | Fail |
@@ -63,7 +63,7 @@ Tests whether the auto-navigation timing affects partition behavior.
 | S5 | After Nav | Reused | (unchanged) | (default) | demoPartition | ❌ | Fail |
 | S6 | After Nav | Reused | "" (default) | (default) | (default) | ✅ | Work |
 | S7 | After Nav | Reused | otherPartition | (default) | otherPartition | ❌ | Fail |
-| **② Partition BEFORE Navigate** | | | | | | | |
+| **② Partition set BEFORE WebView2 Navigate API call** | | | | | | | |
 | S15 | Before Nav | New | (none) | demoPartition | (none) | ❌ | Fail |
 | S16 | Before Nav | New | demoPartition | demoPartition | demoPartition | ✅ | Work |
 | S17 | Before Nav | New | otherPartition | demoPartition | otherPartition | ❌ | Fail |
@@ -71,7 +71,7 @@ Tests whether the auto-navigation timing affects partition behavior.
 | S19 | Before Nav | Reused | (unchanged) | demoPartition | demoPartition | ✅ | Work |
 | S20 | Before Nav | Reused | "" (default) | demoPartition | (default) | ❌ | Fail |
 | S21 | Before Nav | Reused | otherPartition | demoPartition | otherPartition | ❌ | Fail |
-| **③ Implicit Navigation** | | | | | | | |
+| **③ Partition set AFTER WebView2 implicit navigation during init** | | | | | | | |
 | S8 | Implicit | New | (none) | (default) | (none) | ✅ | Work |
 | S9 | Implicit | New | demoPartition | (default) | demoPartition | ❌ | Fail |
 | S10 | Implicit | New | otherPartition | (default) | otherPartition | ❌ | Fail |
