@@ -53,8 +53,8 @@ Tests whether the auto-navigation timing affects partition behavior.
 
 ### Full Scenario Summary
 
-| # | Timing | Child WebView | Child Partition Set | Parent Effective | Popup Effective | Match? | Blob URLs |
-|---|--------|--------------|--------------------|-----------------:|----------------:|:------:|:---------:|
+| # | Timing | NW WebView2 | NW Partition Set | Parent-Effective Partition | NW-Effective Partition | Match? | Blob URLs |
+|---|--------|-------------|------------------|--------------------------:|-----------------------:|:------:|:---------:|
 | **① Partition set AFTER WebView2 Navigate API call on top level frame which spawns new window** | | | | | | | |
 | S1 | After Nav | New | (not set) | (default) | (default) | ✅ | Work |
 | S2 | After Nav | New | demoPartition | (default) | demoPartition | ❌ | Fail |
